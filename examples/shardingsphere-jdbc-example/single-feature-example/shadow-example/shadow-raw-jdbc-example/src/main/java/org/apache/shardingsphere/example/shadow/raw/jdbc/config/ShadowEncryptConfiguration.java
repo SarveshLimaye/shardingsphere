@@ -21,8 +21,8 @@ import org.apache.shardingsphere.driver.api.ShardingSphereDataSourceFactory;
 import org.apache.shardingsphere.encrypt.api.config.EncryptRuleConfiguration;
 import org.apache.shardingsphere.encrypt.api.config.rule.EncryptColumnRuleConfiguration;
 import org.apache.shardingsphere.encrypt.api.config.rule.EncryptTableRuleConfiguration;
-import org.apache.shardingsphere.infra.config.RuleConfiguration;
-import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
+import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
+import org.apache.shardingsphere.infra.config.rule.RuleConfiguration;
 import org.apache.shardingsphere.shadow.api.config.ShadowRuleConfiguration;
 import org.apache.shardingsphere.shadow.api.config.datasource.ShadowDataSourceConfiguration;
 import org.apache.shardingsphere.shadow.api.config.table.ShadowTableConfiguration;
@@ -40,11 +40,10 @@ public final class ShadowEncryptConfiguration extends BaseShadowConfiguration {
     @Override
     public DataSource getDataSource() throws SQLException {
         Map<String, DataSource> dataSourceMap = createDataSourceMap();
-        Collection<RuleConfiguration> ruleConfigurations = createRuleConfiguration();
-        return ShardingSphereDataSourceFactory.createDataSource(dataSourceMap, ruleConfigurations, createShardingSphereProps());
+        return ShardingSphereDataSourceFactory.createDataSource(dataSourceMap, createRuleConfigurations(), createShardingSphereProps());
     }
     
-    private Collection<RuleConfiguration> createRuleConfiguration() {
+    private Collection<RuleConfiguration> createRuleConfigurations() {
         Collection<RuleConfiguration> result = new LinkedList<>();
         result.add(new EncryptRuleConfiguration(getEncryptTableRuleConfigurations(), getEncryptAlgorithmConfigurations()));
         result.add(createShadowRuleConfiguration());
@@ -81,18 +80,18 @@ public final class ShadowEncryptConfiguration extends BaseShadowConfiguration {
     private Collection<EncryptTableRuleConfiguration> getEncryptTableRuleConfigurations() {
         Collection<EncryptTableRuleConfiguration> result = new LinkedList<>();
         Collection<EncryptColumnRuleConfiguration> columns = new LinkedList<>();
-        columns.add(new EncryptColumnRuleConfiguration("username", "username", "", "username_plain", "name_encryptor"));
-        columns.add(new EncryptColumnRuleConfiguration("pwd", "pwd", "assisted_query_pwd", "", "pwd_encryptor"));
+        columns.add(new EncryptColumnRuleConfiguration("username", "username", "", "username_plain", "name_encryptor", null));
+        columns.add(new EncryptColumnRuleConfiguration("pwd", "pwd", "assisted_query_pwd", "", "pwd_encryptor", null));
         result.add(new EncryptTableRuleConfiguration("t_user", columns, null));
         return result;
     }
     
-    private Map<String, ShardingSphereAlgorithmConfiguration> getEncryptAlgorithmConfigurations() {
-        Map<String, ShardingSphereAlgorithmConfiguration> result = new LinkedHashMap<>(2, 1);
+    private Map<String, AlgorithmConfiguration> getEncryptAlgorithmConfigurations() {
+        Map<String, AlgorithmConfiguration> result = new LinkedHashMap<>(2, 1);
         Properties props = new Properties();
         props.setProperty("aes-key-value", "123456");
-        result.put("name_encryptor", new ShardingSphereAlgorithmConfiguration("AES", props));
-        result.put("pwd_encryptor", new ShardingSphereAlgorithmConfiguration("assistedTest", null));
+        result.put("name_encryptor", new AlgorithmConfiguration("AES", props));
+        result.put("pwd_encryptor", new AlgorithmConfiguration("assistedTest", null));
         return result;
     }
 }

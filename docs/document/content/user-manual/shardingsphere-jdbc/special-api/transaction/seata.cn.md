@@ -3,13 +3,25 @@ title = "Seata 事务"
 weight = 7
 +++
 
-## 启动 Seata 服务
+## 背景信息
+
+Apache ShardingSphere 提供 BASE 事务，集成了 Seata 的实现。
+
+## 操作步骤
+
+1. 启动 Seata Server
+2. 创建日志表
+3. 添加 Seata 配置
+
+## 配置示例
+
+### 启动 Seata Server
 
 按照 [seata-work-shop](https://github.com/seata/seata-workshop) 中的步骤，下载并启动 Seata 服务器。
 
-## 创建日志表
+### 创建 undo_log 表
 
-在每一个分片数据库实例中执创建 `undo_log`表（以 MySQL 为例）。
+在每一个分片数据库实例中执创建 `undo_log` 表（以 MySQL 为例）。
 
 ```sql
 CREATE TABLE IF NOT EXISTS `undo_log`
@@ -29,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `undo_log`
   DEFAULT CHARSET = utf8 COMMENT ='AT transaction mode undo table';
 ```
 
-## 修改配置
+### 修改配置
 
 在 classpath 中增加 `seata.conf` 文件。
 
@@ -40,4 +52,4 @@ client {
 }
 ```
 
-根据实际场景修改 Seata 的 `file.conf`和 `registry.conf` 文件。
+根据实际场景修改 Seata 的 `file.conf` 和 `registry.conf` 文件。

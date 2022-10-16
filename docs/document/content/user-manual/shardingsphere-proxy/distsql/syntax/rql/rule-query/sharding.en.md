@@ -8,65 +8,69 @@ weight = 1
 ### Sharding Table Rule
 
 ```sql
-SHOW SHARDING TABLE tableRule | RULES [FROM schemaName]
+SHOW SHARDING TABLE tableRule | RULES [FROM databaseName]
 
-SHOW SHARDING ALGORITHMS [FROM schemaName]
+SHOW SHARDING ALGORITHMS [FROM databaseName]
 
-SHOW UNUSED SHARDING ALGORITHMS [FROM schemaName]
+SHOW UNUSED SHARDING ALGORITHMS [FROM databaseName]
+    
+SHOW SHARDING AUDITORS [FROM databaseName]
 
-SHOW SHARDING KEY GENERATORS [FROM schemaName]
+SHOW SHARDING TABLE RULES USED ALGORITHM shardingAlgorithmName [FROM databaseName]
 
-SHOW UNUSED SHARDING KEY GENERATORS [FROM schemaName]
+SHOW SHARDING KEY GENERATORS [FROM databaseName]
 
-SHOW SHARDING TABLE RULES USED KEY GENERATOR keyGeneratorName [FROM schemaName]
+SHOW UNUSED SHARDING KEY GENERATORS [FROM databaseName]
+    
+SHOW UNUSED SHARDING AUDITORS [FROM databaseName]
+
+SHOW SHARDING TABLE RULES USED KEY GENERATOR keyGeneratorName [FROM databaseName]
+    
+SHOW SHARDING TABLE RULES USED AUDITOR auditorName [FROM databaseName]
 
 SHOW DEFAULT SHARDING STRATEGY 
 
-SHOW SHARDING TABLE NODES;
+SHOW SHARDING TABLE NODES
 
 tableRule:
     RULE tableName
 ```
 -  Support query all data fragmentation rules and specified table query
 -  Support query all sharding algorithms
+-  Support query all sharding audit algorithms
 
 ### Sharding Binding Table Rule
 
 ```sql
-SHOW SHARDING BINDING TABLE RULES [FROM schemaName]
+SHOW SHARDING BINDING TABLE RULES [FROM databaseName]
 ```
 
 ### Sharding Broadcast Table Rule
 
 ```sql
-SHOW SHARDING BROADCAST TABLE RULES [FROM schemaName]
+SHOW SHARDING BROADCAST TABLE RULES [FROM databaseName]
 ```
-
-### Sharding Scaling Rule
-```sql
-SHOW SHARDING SCALING RULES [FROM schemaName]
-```
-
-## Return Value Description
 
 ### Sharding Table Rule
 
 | Column                            | Description                                               |
-| --------------------------------- | --------------------------------------------------------- |
+| --------------------------------- |-----------------------------------------------------------|
 | table                             | Logical table name                                        |
 | actual_data_nodes                 | Actual data node                                          |
 | actual_data_sources               | Actual data source (Displayed when creating rules by RDL) |
 | database_strategy_type            | Database sharding strategy type                           |
 | database_sharding_column          | Database sharding column                                  |
 | database_sharding_algorithm_type  | Database sharding algorithm type                          |
-| database_sharding_algorithm_props | Database sharding algorithm properties                     |
+| database_sharding_algorithm_props | Database sharding algorithm properties                    |
 | table_strategy_type               | Table sharding strategy type                              |
 | table_sharding_column             | Table sharding column                                     |
 | table_sharding_algorithm_type     | Table sharding algorithm type                             |
-| table_sharding_algorithm_props    | Table sharding algorithm properties                         |
+| table_sharding_algorithm_props    | Table sharding algorithm properties                       |
 | key_generate_column               | Sharding key generator column                             |
 | key_generator_type                | Sharding key generator type                               |
 | key_generator_props               | Sharding key generator properties                         |
+| auditor_types                     | Sharding auditor types                                    |
+| allow_hint_disable                | Enable or disable sharding audit hint                     |
 
 ### Sharding Algorithms
 
@@ -83,6 +87,22 @@ SHOW SHARDING SCALING RULES [FROM schemaName]
 | name   | Sharding algorithm name       |
 | type   | Sharding algorithm type       |
 | props  | Sharding algorithm properties |
+
+### Sharding auditors
+
+| Column | Description                         |
+| ------ |-------------------------------------|
+| name   | Sharding audit algorithm name       |
+| type   | Sharding audit algorithm type       |
+| props  | Sharding audit algorithm properties |
+
+### Unused Sharding Auditors
+
+| Column | Description                         |
+| ------ |-------------------------------------|
+| name   | Sharding audit algorithm name       |
+| type   | Sharding audit algorithm type       |
+| props  | Sharding audit algorithm properties |
 
 ### Sharding key generators
 
@@ -130,30 +150,17 @@ SHOW SHARDING SCALING RULES [FROM schemaName]
 | ------------------------- | ----------------------------- |
 | sharding_broadcast_tables | sharding Broadcast Table list |
 
-### Sharding Scaling Rule
-
-| Column                   | Description                            |
-|--------------------------|----------------------------------------|
-| name                     | name of sharding scaling rule          |
-| input                    | data read configuration                |
-| output                   | data write configuration               |
-| stream_channel           | algorithm of stream channel            |
-| completion_detector      | algorithm of completion detecting      |
-| data_consistency_checker | algorithm of data consistency checking |
-
-## Example
-
 ### Sharding Table Rule
 
 *SHOW SHARDING TABLE RULES*
 ```sql
 mysql> SHOW SHARDING TABLE RULES;
 +--------------+---------------------------------+-------------------+----------------------+------------------------+-------------------------------+----------------------------------------+-------------------+---------------------+----------------------------+---------------------------------------------------+-------------------+------------------+-------------------+
-| table        | actual_data_nodes               | actual_data_sources | database_strategy_type | database_sharding_column | database_sharding_algorithm_type | database_sharding_algorithm_props         | table_strategy_type | table_sharding_column | table_sharding_algorithm_type | table_sharding_algorithm_props                       | key_generate_column | key_generator_type | key_generator_props |
+| table        | actual_data_nodes               | actual_data_sources | database_strategy_type | database_sharding_column | database_sharding_algorithm_type | database_sharding_algorithm_props         | table_strategy_type | table_sharding_column | table_sharding_algorithm_type | table_sharding_algorithm_props                       | key_generate_column | key_generator_type | key_generator_props |auditor_types | allow_hint_disable |
 +--------------+---------------------------------+-------------------+----------------------+------------------------+-------------------------------+----------------------------------------+-------------------+---------------------+----------------------------+---------------------------------------------------+-------------------+------------------+-------------------+
-| t_order      | ds_${0..1}.t_order_${0..1}      |                   | INLINE               | user_id                | INLINE                        | algorithm-expression:ds_${user_id % 2} | INLINE            | order_id            | INLINE                     | algorithm-expression:t_order_${order_id % 2}      | order_id          | SNOWFLAKE        |                   |
-| t_order_item | ds_${0..1}.t_order_item_${0..1} |                   | INLINE               | user_id                | INLINE                        | algorithm-expression:ds_${user_id % 2} | INLINE            | order_id            | INLINE                     | algorithm-expression:t_order_item_${order_id % 2} | order_item_id     | SNOWFLAKE        |                   |
-| t2           |                                 | ds_0,ds_1         |                      |                        |                               |                                        | mod               | id                  | mod                        | sharding-count:10                                 |                   |                  |                   |
+| t_order      | ds_${0..1}.t_order_${0..1}      |                   | INLINE               | user_id                | INLINE                        | algorithm-expression:ds_${user_id % 2} | INLINE            | order_id            | INLINE                     | algorithm-expression:t_order_${order_id % 2}      | order_id          | SNOWFLAKE        |                   |DML_SHARDING_CONDITIONS    |true      |
+| t_order_item | ds_${0..1}.t_order_item_${0..1} |                   | INLINE               | user_id                | INLINE                        | algorithm-expression:ds_${user_id % 2} | INLINE            | order_id            | INLINE                     | algorithm-expression:t_order_item_${order_id % 2} | order_item_id     | SNOWFLAKE        |                   |                           |          |
+| t2           |                                 | ds_0,ds_1         |                      |                        |                               |                                        | mod               | id                  | mod                        | sharding-count:10                                 |                   |                  |                   |                           |          |
 +--------------+---------------------------------+-------------------+----------------------+------------------------+-------------------------------+----------------------------------------+-------------------+---------------------+----------------------------+---------------------------------------------------+-------------------+------------------+-------------------+
 3 rows in set (0.02 sec)
 ```
@@ -162,9 +169,9 @@ mysql> SHOW SHARDING TABLE RULES;
 ```sql
 mysql> SHOW SHARDING TABLE RULE t_order;
 +---------+----------------------------+-------------------+----------------------+------------------------+-------------------------------+----------------------------------------+-------------------+---------------------+----------------------------+----------------------------------------------+-------------------+------------------+-------------------+
-| table   | actual_data_nodes          | actual_data_sources | database_strategy_type | database_sharding_column | database_sharding_algorithm_type | database_sharding_algorithm_props         | table_strategy_type | table_sharding_column | table_sharding_algorithm_type | table_sharding_algorithm_props                  | key_generate_column | key_generator_type | key_generator_props |
+| table   | actual_data_nodes          | actual_data_sources | database_strategy_type | database_sharding_column | database_sharding_algorithm_type | database_sharding_algorithm_props         | table_strategy_type | table_sharding_column | table_sharding_algorithm_type | table_sharding_algorithm_props                  | key_generate_column | key_generator_type | key_generator_props | auditor_types | allow_hint_disable |
 +---------+----------------------------+-------------------+----------------------+------------------------+-------------------------------+----------------------------------------+-------------------+---------------------+----------------------------+----------------------------------------------+-------------------+------------------+-------------------+
-| t_order | ds_${0..1}.t_order_${0..1} |                   | INLINE               | user_id                | INLINE                        | algorithm-expression:ds_${user_id % 2} | INLINE            | order_id            | INLINE                     | algorithm-expression:t_order_${order_id % 2} | order_id          | SNOWFLAKE        |                   |
+| t_order | ds_${0..1}.t_order_${0..1} |                   | INLINE               | user_id                | INLINE                        | algorithm-expression:ds_${user_id % 2} | INLINE            | order_id            | INLINE                     | algorithm-expression:t_order_${order_id % 2} | order_id          | SNOWFLAKE        |                   | DML_SHARDING_CONDITIONS    |true      |
 +---------+----------------------------+-------------------+----------------------+------------------------+-------------------------------+----------------------------------------+-------------------+---------------------+----------------------------+----------------------------------------------+-------------------+------------------+-------------------+
 1 row in set (0.01 sec)
 ```
@@ -192,6 +199,28 @@ mysql> SHOW UNUSED SHARDING ALGORITHMS;
 1 row in set (0.01 sec)
 ```
 
+*SHOW SHARDING AUDITORS*
+```sql
+mysql> SHOW SHARDING AUDITORS;
++------------+-------------------------+-------+
+| name       | type                    | props |
++------------+-------------------------+-------+
+| dml_audit  | DML_SHARDING_CONDITIONS |       |
++------------+-------------------------+-------+
+2 row in set (0.01 sec)
+```
+
+*SHOW SHARDING TABLE RULES USED ALGORITHM shardingAlgorithmName*
+```sql
+mysql> SHOW SHARDING TABLE RULES USED ALGORITHM t_order_inline;
++-------+---------+
+| type  | name    |
++-------+---------+
+| table | t_order |
++-------+---------+
+1 row in set (0.01 sec)
+```
+
 *SHOW SHARDING KEY GENERATORS*
 ```sql
 mysql> SHOW SHARDING KEY GENERATORS;
@@ -216,14 +245,36 @@ mysql> SHOW UNUSED SHARDING KEY GENERATORS;
 1 row in set (0.01 sec)
 ```
 
+*SHOW UNUSED SHARDING KEY AUDITORS*
+```sql
+mysql> SHOW UNUSED SHARDING KEY AUDITORS;
++------------+-------------------------+-------+
+| name       | type                    | props |
++------------+-------------------------+-------+
+| dml_audit  | DML_SHARDING_CONDITIONS |       |
++------------+-------------------------+-------+
+1 row in set (0.01 sec)
+```
+
 *SHOW SHARDING TABLE RULES USED KEY GENERATOR keyGeneratorName*
 ```sql
 mysql> SHOW SHARDING TABLE RULES USED KEY GENERATOR keyGeneratorName;
-+------------------------+-----------+-----------------+
-| schema                 | type      | name            |
-+------------------------+-----------+-----------------+
-| sharding_db            | table     | t_order         |
-+------------------------+-----------+-----------------+
++-------+---------+
+| type  | name    |
++-------+---------+
+| table | t_order |
++-------+---------+
+1 row in set (0.01 sec)
+```
+
+*SHOW SHARDING TABLE RULES USED AUDITOR auditorName*
+```sql
+mysql> SHOW SHARDING TABLE RULES USED AUDITOR sharding_key_required;
++-------+---------+
+| type  | name    |
++-------+---------+
+| table | t_order |
++-------+---------+
 1 row in set (0.01 sec)
 ```
 
@@ -276,16 +327,4 @@ mysql> SHOW SHARDING BROADCAST TABLE RULES;
 | t_2                    |
 +------------------------+
 2 rows in set (0.00 sec)
-```
-
-### Sharding Scaling Rule
-
-```sql
-mysql> SHOW SHARDING SCALING RULES;
-+------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------+--------------------------------------------------------+-------------------------------------------------------------------------+-----------------------------------------------------+
-| name             | input                                                                                  | output                                                                                   | stream_channel                                         | completion_detector                                                     | data_consistency_checker                            |
-+------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------+--------------------------------------------------------+-------------------------------------------------------------------------+-----------------------------------------------------+
-| sharding_scaling | {"workerThread":40,"batchSize":1000} | {"workerThread":40,"batchSize":1000} | {"type":"MEMORY","props":{"block-queue-size":"10000"}} | {"type":"IDLE","props":{"incremental-task-idle-minute-threshold":"30"}} | {"type":"DATA_MATCH","props":{"chunk-size":"1000"}} |
-+------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------+--------------------------------------------------------+-------------------------------------------------------------------------+-----------------------------------------------------+
-1 row in set (0.00 sec)
 ```

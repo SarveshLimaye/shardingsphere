@@ -55,11 +55,22 @@ property:
     key=value                          
 ```
 
-- `discoveryType` 指定数据库发现服务类型，`ShardingSphere` 内置支持 `MGR`
-- 重复的 `ruleName` 将无法被创建
-- 正在被使用的 `discoveryType` 和 `discoveryHeartbeat` 无法被删除
-- 带有 `-` 的命名在改动时需要使用 `" "`
-- 移除 `discoveryRule` 时不会移除被该 `discoveryRule` 使用的 `discoveryType` 和 `discoveryHeartbeat`
+### 参数解释
+| 名称                     | 数据类型       | 说明                  |
+|:-----------------------|:-----------|:--------------------|
+| discoveryTypeName      | IDENTIFIER | 数据库发现类型名            |
+| ruleName               | IDENTIFIER | 规则名称                |
+| discoveryHeartbeatName | IDENTIFIER | 监听心跳名称              |
+| typeName               | STRING     | 数据库发现类型，如：MySQL.MGR |
+| resourceName           | IDENTIFIER | 资源名称                |
+
+### 注意事项
+
+- `discoveryType` 指定数据库发现服务类型，`ShardingSphere` 内置支持 `MySQL.MGR`；
+- 重复的 `ruleName` 将无法被创建；
+- 正在被使用的 `discoveryType` 和 `discoveryHeartbeat` 无法被删除；
+- 带有 `-` 的命名在改动时需要使用 `" "`；
+- 移除 `discoveryRule` 时不会移除被该 `discoveryRule` 使用的 `discoveryType` 和 `discoveryHeartbeat`。
 
 ## 示例
 
@@ -68,13 +79,13 @@ property:
 ```sql
 CREATE DB_DISCOVERY RULE db_discovery_group_0 (
 RESOURCES(ds_0, ds_1, ds_2),
-TYPE(NAME=mgr,PROPERTIES('group-name'='92504d5b-6dec')),
+TYPE(NAME='MySQL.MGR',PROPERTIES('group-name'='92504d5b-6dec')),
 HEARTBEAT(PROPERTIES('keep-alive-cron'='0/5 * * * * ?'))
 );
 
 ALTER DB_DISCOVERY RULE db_discovery_group_0 (
 RESOURCES(ds_0, ds_1, ds_2),
-TYPE(NAME=mgr,PROPERTIES('group-name'='246e9612-aaf1')),
+TYPE(NAME='MySQL.MGR',PROPERTIES('group-name'='246e9612-aaf1')),
 HEARTBEAT(PROPERTIES('keep-alive-cron'='0/5 * * * * ?'))
 );
 
@@ -90,7 +101,7 @@ DROP DB_DISCOVERY HEARTBEAT db_discovery_group_0_heartbeat;
 
 ```sql
 CREATE DB_DISCOVERY TYPE db_discovery_group_1_mgr(
-  TYPE(NAME=mgr,PROPERTIES('group-name'='92504d5b-6dec'))
+  TYPE(NAME='MySQL.MGR',PROPERTIES('group-name'='92504d5b-6dec'))
 );
 
 CREATE DB_DISCOVERY HEARTBEAT db_discovery_group_1_heartbeat(
@@ -104,7 +115,7 @@ HEARTBEAT=db_discovery_group_1_heartbeat
 );
 
 ALTER DB_DISCOVERY TYPE db_discovery_group_1_mgr(
-  TYPE(NAME=mgr,PROPERTIES('group-name'='246e9612-aaf1'))
+  TYPE(NAME='MySQL.MGR',PROPERTIES('group-name'='246e9612-aaf1'))
 );
 
 ALTER DB_DISCOVERY HEARTBEAT db_discovery_group_1_heartbeat(
